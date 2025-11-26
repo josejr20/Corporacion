@@ -1,13 +1,26 @@
 package com.empresa.inventario.view;
 
-import com.empresa.inventario.controller.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import com.empresa.inventario.controller.LoginController;
+import com.empresa.inventario.controller.MainController;
 
 /**
- * Ventana principal del sistema con menú de navegación
+ * Ventana principal del sistema con menú de navegación según rol
  */
 public class MainFrame extends JFrame {
     
@@ -24,6 +37,14 @@ public class MainFrame extends JFrame {
     public MainFrame(LoginController loginController) {
         this.loginController = loginController;
         this.mainController = new MainController();
+        
+        // Verificar que hay sesión activa
+        if (!loginController.haySesionActiva()) {
+            JOptionPane.showMessageDialog(null, "No hay sesión activa");
+            dispose();
+            return;
+        }
+        
         initComponents();
         setupWindow();
         mostrarPanelInicio();
@@ -62,36 +83,206 @@ public class MainFrame extends JFrame {
         panelContenido.setBackground(Color.WHITE);
         panelPrincipal.add(panelContenido, BorderLayout.CENTER);
         
-        // Crear menú
-        crearMenu();
+        // Crear menú según el rol
+        crearMenuSegunRol();
     }
     
-    private void crearMenu() {
+    private void crearMenuSegunRol() {
         menuBar = new JMenuBar();
         menuBar.setBackground(new Color(240, 240, 240));
         
-        // Menú Inicio
+        System.out.println("🔍 Creando menú para rol: " + loginController.getRolActual());
+        
+        // Menú Inicio (Todos los roles)
+        agregarMenuInicio();
+        
+        // Menús según rol
+        if (loginController.esGerente()) {
+            crearMenuGerente();
+        } else if (loginController.esAdministrador()) {
+            crearMenuAdministrador();
+        } else if (loginController.esJefeVentas()) {
+            crearMenuJefeVentas();
+        } else if (loginController.esVendedor()) {
+            crearMenuVendedor();
+        } else if (loginController.esAsistenteComercial()) {
+            crearMenuAsistenteComercial();
+        } else if (loginController.esJefeAlmacen()) {
+            crearMenuJefeAlmacen();
+        } else if (loginController.esAuxiliarAlmacen()) {
+            crearMenuAuxiliarAlmacen();
+        } else if (loginController.esJefeLogistica()) {
+            crearMenuJefeLogistica();
+        } else if (loginController.esEncargadoFlota()) {
+            crearMenuEncargadoFlota();
+        } else if (loginController.esRepartidor()) {
+            crearMenuRepartidor();
+        } else {
+            // Rol no reconocido - menú básico
+            agregarMenuBasico();
+        }
+        
+        setJMenuBar(menuBar);
+    }
+    
+    private void agregarMenuInicio() {
         JMenu menuInicio = new JMenu("Inicio");
         JMenuItem itemInicio = new JMenuItem("Panel Principal");
         itemInicio.addActionListener(e -> mostrarPanelInicio());
         menuInicio.add(itemInicio);
         menuBar.add(menuInicio);
+    }
+    
+    // ========== MENÚS POR ROL ==========
+    
+    private void crearMenuGerente() {
+        System.out.println("✓ Menú GERENTE cargado");
+        // Gerente ve TODO
+        agregarMenuClientes();
+        agregarMenuProductos();
+        agregarMenuPedidos();
+        agregarMenuEmpleados();
+        agregarMenuReportes();
+    }
+    
+    private void crearMenuAdministrador() {
+        System.out.println("✓ Menú ADMINISTRADOR cargado");
+        agregarMenuClientes();
+        agregarMenuProductos();
+        agregarMenuPedidos();
+        agregarMenuEmpleados();
+        agregarMenuReportes();
+    }
+    
+    private void crearMenuJefeVentas() {
+        System.out.println("✓ Menú JEFE DE VENTAS cargado");
+        agregarMenuClientes();
+        agregarMenuProductos();
         
-        // Menú Clientes
+        // Menú Pedidos con validación
+        JMenu menuPedidos = new JMenu("Pedidos");
+        JMenuItem itemNuevoPedido = new JMenuItem("Nuevo Pedido");
+        itemNuevoPedido.addActionListener(e -> mostrarNuevoPedido());
+        JMenuItem itemListaPedidos = new JMenuItem("Lista de Pedidos");
+        itemListaPedidos.addActionListener(e -> mostrarListaPedidos());
+        JMenuItem itemValidarPedidos = new JMenuItem("⭐ Validar Pedidos");
+        itemValidarPedidos.addActionListener(e -> mostrarValidarPedidos());
+        menuPedidos.add(itemNuevoPedido);
+        menuPedidos.add(itemListaPedidos);
+        menuPedidos.addSeparator();
+        menuPedidos.add(itemValidarPedidos);
+        menuBar.add(menuPedidos);
+        
+        agregarMenuReportes();
+    }
+    
+    private void crearMenuVendedor() {
+        System.out.println("✓ Menú VENDEDOR cargado");
+        
+        // Solo consulta de clientes
+        JMenu menuClientes = new JMenu("Clientes");
+        JMenuItem itemConsultarClientes = new JMenuItem("Consultar Clientes");
+        itemConsultarClientes.addActionListener(e -> mostrarGestionClientes());
+        menuClientes.add(itemConsultarClientes);
+        menuBar.add(menuClientes);
+        
+        // Solo consulta de productos
+        JMenu menuProductos = new JMenu("Productos");
+        JMenuItem itemConsultarProductos = new JMenuItem("Consultar Productos");
+        itemConsultarProductos.addActionListener(e -> mostrarGestionProductos());
+        menuProductos.add(itemConsultarProductos);
+        menuBar.add(menuProductos);
+        
+        // Pedidos - función principal
+        JMenu menuPedidos = new JMenu("⭐ Pedidos");
+        JMenuItem itemNuevoPedido = new JMenuItem("Nuevo Pedido");
+        itemNuevoPedido.addActionListener(e -> mostrarNuevoPedido());
+        JMenuItem itemMisPedidos = new JMenuItem("Mis Pedidos");
+        itemMisPedidos.addActionListener(e -> mostrarListaPedidos());
+        menuPedidos.add(itemNuevoPedido);
+        menuPedidos.add(itemMisPedidos);
+        menuBar.add(menuPedidos);
+    }
+    
+    private void crearMenuAsistenteComercial() {
+        System.out.println("✓ Menú ASISTENTE COMERCIAL cargado");
+        agregarMenuPedidos();
+        agregarMenuReportes();
+    }
+    
+    private void crearMenuJefeAlmacen() {
+        System.out.println("✓ Menú JEFE DE ALMACÉN cargado");
+        agregarMenuProductos();
+        
+        JMenu menuAlmacen = new JMenu("⭐ Almacén");
+        JMenuItem itemPedidosPendientes = new JMenuItem("Pedidos Pendientes");
+        itemPedidosPendientes.addActionListener(e -> mostrarListaPedidos());
+        JMenuItem itemInventario = new JMenuItem("Control de Inventario");
+        itemInventario.addActionListener(e -> mostrarGestionProductos());
+        menuAlmacen.add(itemPedidosPendientes);
+        menuAlmacen.add(itemInventario);
+        menuBar.add(menuAlmacen);
+    }
+    
+    private void crearMenuAuxiliarAlmacen() {
+        System.out.println("✓ Menú AUXILIAR DE ALMACÉN cargado");
+        
+        JMenu menuAlmacen = new JMenu("⭐ Almacén");
+        JMenuItem itemTareas = new JMenuItem("Mis Tareas");
+        itemTareas.addActionListener(e -> mostrarListaPedidos());
+        menuAlmacen.add(itemTareas);
+        menuBar.add(menuAlmacen);
+    }
+    
+    private void crearMenuJefeLogistica() {
+        System.out.println("✓ Menú JEFE DE LOGÍSTICA cargado");
+        
+        JMenu menuLogistica = new JMenu("⭐ Logística");
+        JMenuItem itemEntregas = new JMenuItem("Planificar Entregas");
+        itemEntregas.addActionListener(e -> mostrarListaPedidos());
+        menuLogistica.add(itemEntregas);
+        menuBar.add(menuLogistica);
+    }
+    
+    private void crearMenuEncargadoFlota() {
+        System.out.println("✓ Menú ENCARGADO DE FLOTA cargado");
+        
+        JMenu menuFlota = new JMenu("⭐ Flota");
+        JMenuItem itemAsignar = new JMenuItem("Asignar Repartidores");
+        itemAsignar.addActionListener(e -> mostrarListaPedidos());
+        menuFlota.add(itemAsignar);
+        menuBar.add(menuFlota);
+    }
+    
+    private void crearMenuRepartidor() {
+        System.out.println("✓ Menú REPARTIDOR cargado");
+        
+        JMenu menuEntregas = new JMenu("⭐ Mis Entregas");
+        JMenuItem itemEntregas = new JMenuItem("Ver Entregas Asignadas");
+        itemEntregas.addActionListener(e -> mostrarListaPedidos());
+        menuEntregas.add(itemEntregas);
+        menuBar.add(menuEntregas);
+    }
+    
+    // ========== MENÚS GENÉRICOS ==========
+    
+    private void agregarMenuClientes() {
         JMenu menuClientes = new JMenu("Clientes");
         JMenuItem itemGestionClientes = new JMenuItem("Gestión de Clientes");
         itemGestionClientes.addActionListener(e -> mostrarGestionClientes());
         menuClientes.add(itemGestionClientes);
         menuBar.add(menuClientes);
-        
-        // Menú Productos
+    }
+    
+    private void agregarMenuProductos() {
         JMenu menuProductos = new JMenu("Productos");
         JMenuItem itemGestionProductos = new JMenuItem("Gestión de Productos");
         itemGestionProductos.addActionListener(e -> mostrarGestionProductos());
         menuProductos.add(itemGestionProductos);
         menuBar.add(menuProductos);
-        
-        // Menú Pedidos
+    }
+    
+    private void agregarMenuPedidos() {
         JMenu menuPedidos = new JMenu("Pedidos");
         JMenuItem itemNuevoPedido = new JMenuItem("Nuevo Pedido");
         itemNuevoPedido.addActionListener(e -> mostrarNuevoPedido());
@@ -100,17 +291,17 @@ public class MainFrame extends JFrame {
         menuPedidos.add(itemNuevoPedido);
         menuPedidos.add(itemListaPedidos);
         menuBar.add(menuPedidos);
-        
-        // Menú Empleados (solo para administradores)
-        if (loginController.esAdministrador()) {
-            JMenu menuEmpleados = new JMenu("Empleados");
-            JMenuItem itemGestionEmpleados = new JMenuItem("Gestión de Empleados");
-            itemGestionEmpleados.addActionListener(e -> mostrarGestionEmpleados());
-            menuEmpleados.add(itemGestionEmpleados);
-            menuBar.add(menuEmpleados);
-        }
-        
-        // Menú Reportes
+    }
+    
+    private void agregarMenuEmpleados() {
+        JMenu menuEmpleados = new JMenu("Empleados");
+        JMenuItem itemGestionEmpleados = new JMenuItem("Gestión de Empleados");
+        itemGestionEmpleados.addActionListener(e -> mostrarGestionEmpleados());
+        menuEmpleados.add(itemGestionEmpleados);
+        menuBar.add(menuEmpleados);
+    }
+    
+    private void agregarMenuReportes() {
         JMenu menuReportes = new JMenu("Reportes");
         JMenuItem itemReporteVentas = new JMenuItem("Reporte de Ventas");
         itemReporteVentas.addActionListener(e -> mostrarReporteVentas());
@@ -122,9 +313,19 @@ public class MainFrame extends JFrame {
         menuReportes.add(itemReporteInventario);
         menuReportes.add(itemReporteClientes);
         menuBar.add(menuReportes);
-        
-        setJMenuBar(menuBar);
     }
+    
+    private void agregarMenuBasico() {
+        System.out.println("⚠ Rol no reconocido - Menú básico cargado");
+        JMenu menuGeneral = new JMenu("General");
+        JMenuItem itemInfo = new JMenuItem("Información");
+        itemInfo.addActionListener(e -> JOptionPane.showMessageDialog(this, 
+            "Sistema en construcción para su rol: " + loginController.getRolActual()));
+        menuGeneral.add(itemInfo);
+        menuBar.add(menuGeneral);
+    }
+    
+    // ========== NAVEGACIÓN ==========
     
     private void setupWindow() {
         setTitle("CORPORACIÓN VLAG S.A.C. - Sistema de Gestión");
@@ -164,6 +365,14 @@ public class MainFrame extends JFrame {
             mainController.getPedidoController()
         );
         cambiarPanel(panelListaPedidos);
+    }
+    
+    private void mostrarValidarPedidos() {
+        // TODO: Crear PanelValidarPedidos
+        JOptionPane.showMessageDialog(this,
+            "Panel de Validación de Pedidos en construcción",
+            "Próximamente",
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void mostrarGestionEmpleados() {
@@ -211,9 +420,16 @@ public class MainFrame extends JFrame {
         );
         
         if (confirmacion == JOptionPane.YES_OPTION) {
+            System.out.println("🔓 Cerrando sesión...");
             loginController.cerrarSesion();
             this.dispose();
-            new LoginView().setVisible(true);
+            
+            // Crear nueva instancia de LoginView
+            SwingUtilities.invokeLater(() -> {
+                LoginView loginView = new LoginView();
+                loginView.setVisible(true);
+                System.out.println("✓ LoginView reiniciado correctamente");
+            });
         }
     }
 }

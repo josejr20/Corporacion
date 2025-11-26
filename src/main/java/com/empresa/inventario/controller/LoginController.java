@@ -1,7 +1,7 @@
 package com.empresa.inventario.controller;
 
-import com.empresa.inventario.service.UsuarioService;
 import com.empresa.inventario.model.Usuario;
+import com.empresa.inventario.service.UsuarioService;
 
 /**
  * Controlador para gestionar el inicio de sesión y autenticación
@@ -23,6 +23,9 @@ public class LoginController {
      * @return true si la autenticación fue exitosa
      */
     public boolean iniciarSesion(String username, String password) {
+        // IMPORTANTE: Limpiar sesión anterior
+        usuarioActual = null;
+        
         // Validaciones básicas en el controlador
         if (username == null || username.trim().isEmpty()) {
             mostrarError("Por favor ingrese un nombre de usuario");
@@ -39,6 +42,7 @@ public class LoginController {
         
         if (usuarioActual != null) {
             mostrarMensaje("Bienvenido, " + username);
+            mostrarMensaje("Rol detectado: " + usuarioActual.getRol().getNombreRol());
             return true;
         } else {
             mostrarError("Usuario o contraseña incorrectos");
@@ -51,8 +55,8 @@ public class LoginController {
      */
     public void cerrarSesion() {
         if (usuarioActual != null) {
-            System.out.println("Sesión cerrada para: " + usuarioActual.getUsername());
-            usuarioActual = null;
+            System.out.println("✓ Sesión cerrada para: " + usuarioActual.getUsername());
+            usuarioActual = null; // IMPORTANTE: Limpiar usuario
         }
     }
     
@@ -77,8 +81,11 @@ public class LoginController {
      * @return true si es administrador
      */
     public boolean esAdministrador() {
-        return usuarioActual != null && 
-               usuarioService.esAdministrador(usuarioActual);
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("administrador") || rol.equals("admin");
     }
     
     /**
@@ -86,8 +93,107 @@ public class LoginController {
      * @return true si es vendedor
      */
     public boolean esVendedor() {
-        return usuarioActual != null && 
-               usuarioService.esVendedor(usuarioActual);
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("vendedor");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Jefe de Ventas
+     * @return true si es Jefe de Ventas
+     */
+    public boolean esJefeVentas() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("jefe de ventas") || rol.equals("jefe ventas") || rol.equals("jefeventas");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Asistente Comercial
+     * @return true si es Asistente Comercial
+     */
+    public boolean esAsistenteComercial() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("asistente comercial") || rol.equals("asistente");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Jefe de Almacén
+     * @return true si es Jefe de Almacén
+     */
+    public boolean esJefeAlmacen() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("jefe de almacen") || rol.equals("jefe almacen") || rol.equals("jefealmacen");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Auxiliar de Almacén
+     * @return true si es Auxiliar de Almacén
+     */
+    public boolean esAuxiliarAlmacen() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("auxiliar de almacen") || rol.equals("auxiliar almacen") || rol.equals("auxiliar");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Jefe de Logística
+     * @return true si es Jefe de Logística
+     */
+    public boolean esJefeLogistica() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("jefe de logistica") || rol.equals("jefe logistica") || rol.equals("jefelogistica");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Encargado de Flota
+     * @return true si es Encargado de Flota
+     */
+    public boolean esEncargadoFlota() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("encargado de flota") || rol.equals("encargado flota") || rol.equals("flota");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Repartidor
+     * @return true si es Repartidor
+     */
+    public boolean esRepartidor() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("repartidor");
+    }
+    
+    /**
+     * Verifica si el usuario actual es Gerente
+     * @return true si es Gerente
+     */
+    public boolean esGerente() {
+        if (usuarioActual == null || usuarioActual.getRol() == null) {
+            return false;
+        }
+        String rol = usuarioActual.getRol().getNombreRol().toLowerCase().trim();
+        return rol.equals("gerente") || rol.equals("gerente general");
     }
     
     /**

@@ -1,9 +1,13 @@
 package com.empresa.inventario.dao;
 
-import com.empresa.inventario.model.Cliente;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.empresa.inventario.model.Cliente;
 
 public class ClienteDAO {
 

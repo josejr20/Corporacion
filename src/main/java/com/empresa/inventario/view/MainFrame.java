@@ -18,9 +18,11 @@ import javax.swing.SwingUtilities;
 
 import com.empresa.inventario.controller.LoginController;
 import com.empresa.inventario.controller.MainController;
+import com.empresa.inventario.view.cliente.PanelClientePedido;
 
 /**
  * Ventana principal del sistema con menú de navegación según rol
+ * CORREGIDO: Llamadas correctas a los paneles
  */
 public class MainFrame extends JFrame {
     
@@ -97,6 +99,8 @@ public class MainFrame extends JFrame {
         agregarMenuInicio();
         
         // Menús según rol
+        String rol = loginController.getRolActual().toLowerCase().trim();
+        
         if (loginController.esGerente()) {
             crearMenuGerente();
         } else if (loginController.esAdministrador()) {
@@ -117,6 +121,8 @@ public class MainFrame extends JFrame {
             crearMenuEncargadoFlota();
         } else if (loginController.esRepartidor()) {
             crearMenuRepartidor();
+        } else if ("cliente".equals(rol)) {
+            crearMenuCliente();
         } else {
             // Rol no reconocido - menú básico
             agregarMenuBasico();
@@ -134,6 +140,25 @@ public class MainFrame extends JFrame {
     }
     
     // ========== MENÚS POR ROL ==========
+    
+    /**
+     * Menú especial para CLIENTES
+     */
+    private void crearMenuCliente() {
+        System.out.println("✓ Menú CLIENTE cargado");
+        
+        JMenu menuPedidos = new JMenu("⭐ Mis Pedidos");
+        
+        JMenuItem itemNuevoPedido = new JMenuItem("Realizar Pedido");
+        itemNuevoPedido.addActionListener(e -> mostrarPanelClientePedido());
+        menuPedidos.add(itemNuevoPedido);
+        
+        JMenuItem itemMisPedidos = new JMenuItem("Ver Mis Pedidos");
+        itemMisPedidos.addActionListener(e -> mostrarListaPedidos());
+        menuPedidos.add(itemMisPedidos);
+        
+        menuBar.add(menuPedidos);
+    }
     
     private void crearMenuGerente() {
         System.out.println("✓ Menú GERENTE cargado");
@@ -340,9 +365,24 @@ public class MainFrame extends JFrame {
         cambiarPanel(panelInicio);
     }
     
+    /**
+     * CORREGIDO: Muestra el panel de gestión de clientes (CRUD)
+     */
     private void mostrarGestionClientes() {
         PanelClientes panelClientes = new PanelClientes(mainController.getClienteController());
         cambiarPanel(panelClientes);
+    }
+    
+    /**
+     * NUEVO: Panel especial para que CLIENTES realicen pedidos
+     */
+    private void mostrarPanelClientePedido() {
+        PanelClientePedido panelClientePedido = new PanelClientePedido(
+            mainController.getProductoController(),
+            mainController.getPedidoController(),
+            loginController.getUsuarioActual()
+        );
+        cambiarPanel(panelClientePedido);
     }
     
     private void mostrarGestionProductos() {
